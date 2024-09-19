@@ -1,0 +1,36 @@
+#!/bin/sh
+#acn_detect_version=6
+
+# Exit on any rc!=0
+set -e
+
+# Get script working dir
+HOOKS_DIR=$(dirname $0)
+
+# acn_git_hooks_deploy_id 27a929811c6f53eca43f13012488a88b92df4003
+export CONFIG_DIRECTORY='/Users/damon.mcdougald/.acn-security-tools/config'
+if uname | grep "MINGW"* > /dev/null;
+then
+    if py ${HOOKS_DIR}/python_validation 
+    then
+        echo "Python Validation Successful"
+        # Windows
+        py ${HOOKS_DIR}/detect_remote 2>/dev/null 
+        py ${HOOKS_DIR}/detect_secret 2>/dev/null 
+    else
+        echo "Python Validation Failed - Skipping Pre-Commmit Hooks"
+    fi
+
+  
+else
+    if /Library/ManagedFrameworks/Python/Python3.framework/Versions/Current/bin/python3 ${HOOKS_DIR}/python_validation 
+    then
+        echo "Python Validation Successful"
+        # Linux / Mac
+        /Library/ManagedFrameworks/Python/Python3.framework/Versions/Current/bin/python3 ${HOOKS_DIR}/detect_remote 2>/dev/null 
+        /Library/ManagedFrameworks/Python/Python3.framework/Versions/Current/bin/python3 ${HOOKS_DIR}/detect_secret 2>/dev/null 
+    else
+        echo "Python Validation Failed - Skipping Pre-Commmit Hooks"
+    fi
+  
+fi

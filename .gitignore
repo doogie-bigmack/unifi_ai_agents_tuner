@@ -1,0 +1,20 @@
+#license
+#apache 2.0
+
+.env
+
+# Ignore all JSON files
+*.json
+
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+myenv/
+env/
+.venv/path/to/largefile
+
+# Ignore cache directories
+.cache/

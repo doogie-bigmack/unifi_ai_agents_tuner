@@ -1,0 +1,171 @@
+# acn_git_hooks_deploy_id 27a929811c6f53eca43f13012488a88b92df4003
+#acn_detect_version=6
+
+import os 
+import re
+import sys
+import platform
+import argparse
+import subprocess
+from datetime import datetime
+
+def flatten(listOfLists):
+    flat_list = []
+    if listOfLists:
+        for sublist in listOfLists:
+            for item in sublist:
+                if item:
+                    flat_list.append(item)
+    return flat_list
+
+def getGitConfig(section):
+    return subprocess.check_output(["git", "config", "--get-all", section]).decode().split()
+
+def getGitRemotes():
+    return subprocess.check_output(["git", "remote"]).decode().split()
+
+def getRemoteAllowList(configs):
+    try:
+        import configparser
+    except ImportError:
+        import ConfigParser as configparser
+    allowed_remotes_list = []
+    block_commit = False
+    for config in configs:
+        parser = configparser.ConfigParser()
+        parser.read(config)                                                          # Parse the ini file of allowed urls
+        allowed_urls = parser.get("remote_allow_list", "urls").split()
+        for url in allowed_urls:
+            if url not in allowed_remotes_list:
+                allowed_remotes_list.append(url)
+        try:
+            block_commit = parser.getboolean("remote_allow_list", "block_commit")
+        except configparser.NoOptionError:
+            # use the default in pub sec dict if not specified in priv sec dict
+            block_commit = block_commit
+    return allowed_remotes_list, block_commit
+
+def getAllPushUrls():
+    git_remote_urls = []
+    git_remotes = getGitRemotes()                                                       # Get list of remotes in the current repository
+
+    if git_remotes:
+        for remote in git_remotes:
+            git_remote_urls.append(getGitConfig("remote."+remote+".url"))               # Get the configured remote URL
+            try:
+                git_remote_urls.append(getGitConfig("remote."+remote+".pushurl"))       # Try to get the configured Push URLs
+            except:
+                pass                                                                    # No Push URLs detected, so will only check the remote URL
+    else:
+        pass
+
+    return flatten(git_remote_urls)
+
+def checkForDisallowedRemotes(allowed_remote_urls, git_remote_urls):
+    invalid_remote_url = False
+    disallowed_remotes = []
+
+    for remote_url in git_remote_urls:
+        for allowed_url in allowed_remote_urls:
+            if re.search(allowed_url, remote_url):
+                invalid_remote_url = False                                              # Allowed remote url detected
+                break                                                                   # Stop checking the current remote URL
+            invalid_remote_url = True
+        if invalid_remote_url:
+            disallowed_remotes.append(remote_url)                                       # Build up list of disallowed URLs
+
+    return disallowed_remotes
+
+def log_block():
+    try:
+        system = platform.system()
+        
+        if system == "Windows":
+            log_folder = "C:/ProgramData/Accenture/GitPreCommitHooks"
+        elif system == "Darwin":
+            log_folder = "/users/shared/.GPCHB"
+        else: # linux
+            log_folder = "/tmp/.GPCHB"
+
+        if not os.path.exists(log_folder):
+            os.makedirs(log_folder)
+
+        block_logfile = '{}/GPCHBRemote_log.txt'.format(log_folder)
+        if not os.path.exists(block_logfile):
+            with open(block_logfile, 'w') as f:
+                f.write("1")
+        else:
+            with open(block_logfile, 'r') as f:
+                curr_block_count = f.readline()
+            with open(block_logfile, 'w') as f:
+                new_count = int(curr_block_count) + 1
+                f.write(str(new_count))
+    
+    except Exception as e:
+        try:
+            error_logfile = '{}/GPCHBRemote_errorlog.txt'.format(log_folder)
+            with open(error_logfile, "a") as f:
+                now = datetime.now()
+                f.write("{}\n".format(now))
+                f.write("{}\n\n".format(e))
+        except:
+            # if we fail on the exception handling, what is there left to do but return with nothing?
+            return
+
+def printOutput(disallowed_remotes, severity="WARN"):
+    for remote in disallowed_remotes:
+        print("["+severity+"] Non-allowed remote URL in the repo: "+remote)
+        log_block()
+
+def resolvePath(path):
+    if path[0] == "~":    
+        user_home = os.path.expanduser("~")
+        path = user_home+path[1:]
+    return path
+
+def findConfigs():
+    config_dir = resolvePath(os.environ['CONFIG_DIRECTORY'])
+    project_cfg = resolvePath("~/.acn_sec_projcfg.ini")
+    configs = []
+    if os.path.isfile(".pre_commit_override.ini"):
+    # override file, return only this one
+        cwd = os.getcwd()
+        configs.append(cwd+"/.pre_commit_override.ini")
+        return configs
+    if os.path.isfile(project_cfg):
+    # project-specific config detected
+        configs.append(project_cfg)
+    if os.path.isfile(config_dir+"/private/private_secrets_dictionary.ini"):
+    # use private secrets config
+        configs.append(config_dir+"/private/private_secrets_dictionary.ini")
+    else:
+    # use public secrets config
+        configs.append(config_dir+"/public_secrets_dictionary.ini")
+    return configs
+
+def main():
+    return_code = 0                                                                     # Default to return with script success and print WARN
+    config_files = findConfigs()
+    allowed_remote_urls = []
+    try:
+        allowed_remote_urls, block_commit = getRemoteAllowList(config_files)                       # Parse the config file for allowed URLs
+    except:
+        print("[ERROR] Invalid syntax in configuration ini file.")
+
+    remote_urls = getAllPushUrls()
+    if len(remote_urls) == 0:
+        return return_code                                                              # Exit early - repository is not connected to a git remote
+
+    disallowed_remotes = checkForDisallowedRemotes(allowed_remote_urls, remote_urls)
+
+    if disallowed_remotes:
+        if block_commit:
+            printOutput(disallowed_remotes, severity="ERROR")
+            return_code = 1
+        else:
+            printOutput(disallowed_remotes)
+    
+    return return_code
+
+if __name__ == '__main__':
+    exit(main())

@@ -1,0 +1,9 @@
+#THIS CODE IS ONLY INTENDED TO BE AN ADDITIONAL VALIDATION THAT PYTHON IS ABLE TO RUN ON THE ENDPOINT. 
+def main():
+    return_code = 0                                                                     
+    
+    return return_code
+
+if __name__ == '__main__':
+    exit(main())
+

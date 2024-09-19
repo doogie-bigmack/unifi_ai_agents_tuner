@@ -1,0 +1,4 @@
+autogen
+requests
+python-dotenv
+openai
