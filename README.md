@@ -1,7 +1,5 @@
 # UniFi Tuner
 
-
-
 ## Table of Contents
 
 - [Introduction](#introduction)
@@ -12,9 +10,10 @@
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Project Structure](#project-structure)
+- [TODO](#todo)
 - [Contributing](#contributing)
 - [License](#license)
-
+- [Contact](#contact)
 
 ## Introduction
 
@@ -22,14 +21,13 @@
 
 ## Features
 
-- **Modular AI Agents:** That asses the network and make recommendations on how to improve the network and also human in the loop agent to continue to ask clarifying questions on recommendations. 
+- **Modular AI Agents:** That assess the network and make recommendations on how to improve the network and also include a human-in-the-loop agent to continue asking clarifying questions on recommendations.
 - **Environment Configuration:** Securely manage API keys and model configurations using a `.env` file.
 - **Group Chat Management:** Efficiently handle group chat interactions with multiple agents.
 - **Logging & Error Handling:** Comprehensive logging for better debugging and error management.
 - **Scalable Architecture:** Designed for scalability and ease of maintenance.
 
 ## Technologies Used
-
 
 - **AI Framework:** Autogen AI Agent
 - **Environment Management:** `python-dotenv`
@@ -42,7 +40,7 @@ Before you begin, ensure you have met the following requirements:
 - **Python 3.12** installed on your machine. You can download it from [here](https://www.python.org/downloads/).
 - **Git** installed for version control. Download it from [here](https://git-scm.com/downloads).
 - An **OpenAI API Key**. Sign up and obtain your API key from [OpenAI](https://platform.openai.com/signup).
-- Create a local account on your unifi dream machine or controller and obtain the api credentials.
+- Create a local account on your UniFi Dream Machine or controller and obtain the API credentials.
 
 ## Installation
 
@@ -61,7 +59,7 @@ Follow these steps to set up the project locally:
 
    ```bash
    python3 -m venv myenv
-   source myenv/bin/activate  # On Windows: myenv\Scripts\activate
+   source myenv/bin/activate  # On Windows, use `myenv\Scripts\activate`
    ```
 
 3. **Install Dependencies**
@@ -70,61 +68,46 @@ Follow these steps to set up the project locally:
    pip install -r requirements.txt
    ```
 
-   *Ensure that your `requirements.txt` includes all necessary packages, such as `python-dotenv`, `autogen`, `flask`, etc.*
+4. **Configure Environment Variables**
 
-## Configuration
-
-1. **Set Up Environment Variables**
-
-   Create a `.env` file in the root directory of the project and add the following configurations:
-
-   
-
-   *Ensure that `.env` is included in your `.gitignore` to prevent sensitive information from being committed.*
-
-2. **Update `.gitignore`**
-
-   Your `.gitignore` should exclude unnecessary files and directories. Ensure it includes the following:
-
-   ```gitignore:unifi_tuner/.gitignore
-   # Ignore all JSON files
-   *.json
-
-   # Ignore recommendations.txt
-   recommendations.txt
-
-   # Ignore virtual environment directory
-   myenv/
-
-   # Ignore cache directories
-   .cache/
-   __pycache__/
-
-   # Ignore simple_autogenexample.py
-   simple_autogenexample.py
-   ```
-
-## Usage
-
-1. **Activate the Virtual Environment**
+   Create a `.env` file in the root directory and add your API keys and configurations.
 
    ```bash
-   source myenv/bin/activate  # On Windows: myenv\Scripts\activate
+   touch .env
    ```
 
-2. **Run the Application**
+   Add the following to `.env`:
 
-   Execute the main Python script to start the AI agents and manage group chat interactions.
+   Create a `.env` file in the root directory of the project and add the following configurations: your unifi controller ip address, your unifi controller username and password, and your openai api key, logging level 
 
-   ```bash
-   python unifi_ai_agents.py
-   ```
-
-3. **Logging**
+5. **Logging**
 
    Logs are configured to display informational messages. Monitor the console output to observe interactions and identify any potential issues.
 
-   ## Contributing
+## Configuration
+
+*(Details about configuration go here.)*
+
+## Usage
+
+*(Instructions on how to use the tool go here.)*
+
+## Project Structure
+
+*(Overview of the project structure goes here.)*
+
+## TODO
+
+- [ ] **Monitor LLM Enhancements**
+  - Update the monitor to track token usage.
+  - Implement cost estimation when running the LLM.
+- [ ] **Automate Configuration of Automations**
+  - Develop scripts to automate the setup and configuration processes.
+  - Integrate automated testing for configuration changes.
+- [ ] **enhance security**
+    - add in IAM capabilities to test out managing and enforcing access of agents
+    - testing ideas
+## Contributing
 
 Contributions are welcome! Please follow these steps to contribute:
 
